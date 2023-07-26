@@ -10,6 +10,7 @@ Foi construido um kit de desenvolvimento de software (SDK) que oferece uma inter
 Foram extraídos neste projeto informações dos Jogadores da partida e dados dos times.  
 
 ## Demonstração 
+Se o vídeo abaixo não funcionar, [clique aqui](https://drive.google.com/file/d/1H15zK7XzgQT0FaWo-_NsETkQwDWCSSe1/view?usp=sharing)
 
 https://github.com/DRKn1ght/RocketLeague-Data-Dumper/assets/48892177/95652855-d864-4026-ae80-e22ef6f79d76
 
