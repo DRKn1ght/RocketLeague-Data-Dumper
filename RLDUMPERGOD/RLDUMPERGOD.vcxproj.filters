@@ -21,12 +21,27 @@
     <ClCompile Include="dllmain.cpp">
       <Filter>Arquivos de Origem</Filter>
     </ClCompile>
+    <ClCompile Include="UObject.cpp">
+      <Filter>UE</Filter>
+    </ClCompile>
+    <ClCompile Include="UGFxData_PRI.hpp">
+      <Filter>UE</Filter>
+    </ClCompile>
+    <ClCompile Include="GFxData_TeamInfo_TA.cpp">
+      <Filter>UE</Filter>
+    </ClCompile>
+    <ClCompile Include="UGFxData_PRI.cpp">
+      <Filter>UE</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="UObject.hpp">
       <Filter>UE</Filter>
     </ClInclude>
     <ClInclude Include="UClass.hpp">
+      <Filter>UE</Filter>
+    </ClInclude>
+    <ClInclude Include="GFxData_TeamInfo_TA.hpp">
       <Filter>UE</Filter>
     </ClInclude>
   </ItemGroup>

@@ -1,2 +1,3 @@
 ﻿  dllmain.cpp
-  RLDUMPERGOD.vcxproj -> D:\vstudio2022\RLDUMPERGOD\x64\Debug\RLDUMPERGOD.dll
+x64\Debug\UGFxData_PRI.obj : warning LNK4042: objeto especificado mais de uma vez; extras ignorados
+  RLDUMPERGOD.vcxproj -> D:\vstudio2022\RLDUMPERGOD\RocketLeague-Data-Dumper-New\x64\Debug\RLDUMPERGOD.dll

@@ -1,134 +1,94 @@
 #pragma once
-#include <Windows.h>
+#include <windows.h>
 #include <iostream>
 #include <fstream>
 #include <string>
 #include <vector>
+#include <iomanip>
 #include "UObject.hpp"
 #include "UClass.hpp"
+#include "GFxData_TeamInfo_TA.hpp"
+#include "UGFxData_PRI.hpp"
+#include <unordered_map>
+#include <algorithm>
+#include <chrono>
+#include <thread>
 
-static uintptr_t BaseAddress = reinterpret_cast<uintptr_t>(GetModuleHandle(NULL));
+// Function to center text within a given width
+std::wstring centerText(const std::wstring& text, size_t width) {
+	size_t padding = width > text.length() ? (width - text.length()) / 2 : 0;
+	std::wstring centeredText = std::wstring(padding, L' ') + text + std::wstring(padding, L' ');
 
-GNames* GetFNamePool()
-{
-	// offset: 0x24BF490
-	return *(GNames**)(BaseAddress + 0x24BF490);
-}
-
-std::wstring UObject::GetName()
-{
-	GNames* FNamePool = GetFNamePool();
-	return std::wstring(FNamePool->FNamesArray[NameIdx]->Name);
-}
-
-std::wstring GetNameByIndex(int32_t NameIdx) 
-{
-	GNames* FNamePool = GetFNamePool();
-	return std::wstring(FNamePool->FNamesArray[NameIdx]->Name);
-}
-
-std::wstring UObject::GetFullName()
-{
-	std::wstring fullName = this->GetName();
-
-	for (UObject* uOuter = this->Outer; uOuter; uOuter = uOuter->Outer)
-	{
-		fullName = (uOuter->GetName() + L"." + fullName);
+	// If there's an odd amount of padding, adjust to ensure it's fully centered
+	if (centeredText.length() < width) {
+		centeredText += L' ';
 	}
 
-	fullName = this->Class->GetName() + L" " + fullName;
-
-	return fullName;
+	return centeredText;
 }
 
-bool UObject::IsA(UClass* uClass)
+
+void PrintTeamTable(std::vector<GFxData_TeamInfo_TA*>& Teams, std::vector<UGFxData_PRI_TA*>& Players)
 {
-	for (UClass* uSuperClass = this->Class; uSuperClass; uSuperClass = static_cast<UClass*>(uSuperClass->SuperField.SuperField))
+	system("cls");
+	// Determine the width of the columns
+	size_t columnWidth = 20;
+
+	// Print the top border
+	std::wcout << L"|" << std::wstring(columnWidth + 1, L'=') << L"="
+		<< std::wstring(columnWidth + 1, L'=') << L"|" << std::endl;
+
+	// Print the header with team names
+	std::wcout << L"| " << centerText(Teams[0]->GetTeamName(), columnWidth)
+		<< L"| " << centerText(Teams[1]->GetTeamName(), columnWidth) << L"|" << std::endl;
+
+	std::wcout << L"| " << centerText(std::to_wstring(Teams[0]->Score), columnWidth)
+		<< L"| " << centerText(std::to_wstring(Teams[1]->Score), columnWidth) << L"|" << std::endl;
+
+	// Print the separator
+	std::wcout << L"|" << std::wstring(columnWidth + 1, L'=') << L"|" 
+               << std::wstring(columnWidth + 1, L'=') << L"|" << std::endl;
+
+	std::vector<UGFxData_PRI_TA*> Team1Players;
+	std::vector<UGFxData_PRI_TA*> Team2Players;
+
+	for (auto player : Players)
 	{
-		if (uSuperClass && uSuperClass == uClass)
-		{
-			return true;
-		}
+		if (player->Team == Teams[0]->Team)
+			Team1Players.push_back(player);
+		else
+			Team2Players.push_back(player);
 	}
-	return false;
-}
 
-std::vector<UObject*> GetInstancesByClass(UClass* uClass)
-{
-	uintptr_t objectCountAddress = BaseAddress + 0x24BF4E0;
-	int32_t objectNumber = *reinterpret_cast<int32_t*>(objectCountAddress);
-	std::vector<UObject*> instances;
+	size_t maxPlayers = (((Team1Players.size()) > (Team2Players.size())) ? (Team1Players.size()) : (Team2Players.size()));
 
-	for (int i = 0; i < objectNumber; i++)
+	for (size_t i = 0; i < maxPlayers; ++i)
 	{
-		UObject* currObject = GetObjectByIndex(i);
-
-		if (currObject && currObject->IsA(uClass))
-		{
-			instances.push_back(currObject);
-		}
+		std::wcout << L"| " << centerText((i < Team1Players.size() ? Team1Players[i]->GetPlayerName() : L""), columnWidth)
+			<< L"| " << centerText((i < Team2Players.size() ? Team2Players[i]->GetPlayerName() : L""), columnWidth)
+			<< L"|" << std::endl;
 	}
-	return instances;
-}
-
-
-bool UObject::HasOuter()
-{
-	return Outer != this;
+	// Print the bottom border
+	std::wcout << L"|" << std::wstring(columnWidth + 1, L'=') << L"="
+		<< std::wstring(columnWidth + 1, L'=') << L"|" << std::endl;
 }
 
 void Main()
 {
-	GNames* NamePool = GetFNamePool();
-	UObject* Object = GetObjectByIndex(0);
-	int currentIndex = 0;
-	FILE* file;
-	_wfopen_s(&file, L"addresses.txt", L"w+");
-	uintptr_t objectCountAddress = BaseAddress + 0x24BF4E0;
-	int32_t objectNumber = *reinterpret_cast<int32_t*>(objectCountAddress);
-	uintptr_t LocalPlayerAddress = 0x0;
-	UClass* LocalPlayer = nullptr;
-	UObject* LocalPlayerObject = nullptr;
-	while (currentIndex < objectNumber)
-	{
-		if (Object) {
-			fwprintf(file, L"Name: %ls\n, address: %p\n", Object->GetFullName().c_str(), Object);
-			if (Object->GetFullName().find(L"GFxData_LocalPlayer_TA Transient.GFxData_LocalPlayer_TA") != std::string::npos) {
-				LocalPlayer = reinterpret_cast<UClass*>(Object->Class);
-				LocalPlayerObject = reinterpret_cast<UObject*>(Object);
-				wprintf(L"LocalPlayerObject: 0x%p\nLocalPlayerAddress: 0x%p\n", Object, LocalPlayer);
-			}
-		}
+	//FILE* file;
+	//_wfopen_s(&file, L"addresses.txt", L"w+");
+	UClass* GFxData_TeamInfo = nullptr;
+	UClass* UGFxData_PRI = nullptr;
 
-		currentIndex++;
-		if (currentIndex >= objectNumber)
-			break;
-		Object = GetObjectByIndex(currentIndex);
-	}
-	fclose(file);
-	UStruct* LocalPlayerMembers = LocalPlayer->Members;
-	for (int i = 0; i < 1000; i++) {
-		if (LocalPlayerMembers)
-		{
-			wprintf(L"%ls.%ls 0x%08X\n", LocalPlayerMembers->Outer->GetName().c_str(), GetNameByIndex(LocalPlayerMembers->NameIdx).c_str(), LocalPlayerMembers->Offset);
-			LocalPlayerMembers = LocalPlayerMembers->Next;
-		}
-		else {
-			break;
-		}
-	}
-
-	std::vector<UObject*> instances = GetInstancesByClass(LocalPlayer);
-	for (int i = 0; i < instances.size(); i++)
+	std::vector<GFxData_TeamInfo_TA*> TeamInstances = GFxData_TeamInfo_TA::GetInstances();
+	std::vector<UGFxData_PRI_TA*> PlayerInstances = UGFxData_PRI_TA::GetInstances();
+		
+	while (true)
 	{
-		UObject* currObject = instances[i];
-		if (currObject)
-		{
-			wprintf(L"Classe %ls; instance: %ls %p\n", LocalPlayer->GetName().c_str(), currObject->GetFullName().c_str(), currObject);
-		}
+		PrintTeamTable(TeamInstances, PlayerInstances);
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	}
 }
-
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReserved)
 {
@@ -137,6 +97,8 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD  ul_reason_for_call, LPVOID lpReser
 	case DLL_PROCESS_ATTACH:
 		CreateThread(0, 0, (LPTHREAD_START_ROUTINE)Main, 0, 0, 0);
 		AllocConsole();
+		SetWindowPos(GetConsoleWindow(), HWND_TOPMOST, 0, 0, 0, 0, SWP_DRAWFRAME | SWP_NOMOVE | SWP_NOSIZE | SWP_SHOWWINDOW);
+		ShowWindow(GetConsoleWindow(), SW_NORMAL);
 		freopen("CONOUT$", "w", stdout);
 		freopen("CONOUT$", "w", stderr);
 		freopen("CONIN$", "r", stdin);

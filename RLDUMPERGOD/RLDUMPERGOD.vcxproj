@@ -129,8 +129,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="GFxData_TeamInfo_TA.cpp" />
+    <ClCompile Include="UGFxData_PRI.cpp" />
+    <ClCompile Include="UGFxData_PRI.hpp" />
+    <ClCompile Include="UObject.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="GFxData_TeamInfo_TA.hpp" />
     <ClInclude Include="UClass.hpp" />
     <ClInclude Include="UObject.hpp" />
   </ItemGroup>
