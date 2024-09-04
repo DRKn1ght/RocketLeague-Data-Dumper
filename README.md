@@ -1,7 +1,5 @@
-
 ## **How to Create an SDK to Extract Rocket League Data: Reverse Engineering in Unreal Engine Games**
-
-![](https://cdn-images-1.medium.com/max/2000/1*asUGKU2oOOS4mGxwQylH1g.gif)
+![1_asUGKU2oOOS4mGxwQylH1g](https://github.com/user-attachments/assets/91ac0e0f-bfb4-4eb8-a7d4-59519e16edab)
 
 In this article, we will use reverse engineering concepts and techniques applied to Rocket League and Unreal Engine 3 to create an SDK (Software Development Kit) to obtain the following information: the names of the teams, all the members of each team, and the score. Here, you will learn:
 
@@ -600,14 +598,26 @@ We can see at offset 0x0098 the player’s name, as shown in the definition we m
 
 Now we just need to get the team instances, relate each player to a team, and separate them for a more organized visualization. We achieved the following result:
 
-![](https://cdn-images-1.medium.com/max/2000/1*asUGKU2oOOS4mGxwQylH1g.gif)
+![1_asUGKU2oOOS4mGxwQylH1g](https://github.com/user-attachments/assets/91ac0e0f-bfb4-4eb8-a7d4-59519e16edab)
 
 And that’s it! We developed an SDK from scratch with everything needed to achieve our goal.
+
+## Credits
+Written and published by: Guilherme Panobianco ([GitHub](https://github.com/DRKn1ght) | [LinkedIn](https://www.linkedin.com/in/guilherme-panobianco/)).
+
+Thanks to: João Vitor de Oliveira ([GitHub](https://github.com/sil3nce1) | [LinkedIn](https://www.linkedin.com/in/joao-vitor-de-oliveira/)) - for helping with the code and reviewing this article.
+
+Thanks to: iPower ([GitHub](https://github.com/iPower)) - for helping reviewing this article.
 
 ## References
 
 **Cheat Engine**. *Cheat Engine Official Website*. Retrieved from [https://www.cheatengine.org/](https://www.cheatengine.org/)
-**Guided Hacking**. *Reclass Tutorial — ReClass.NET — How To Reverse Structures *[Video]. YouTube. Retrieved from [https://www.youtube.com/watch?v=vQb21RM9-5M](https://www.youtube.com/watch?v=vQb21RM9-5M)
-**Guided Hacking**. *How To Find the EntityList in Assault Cube with Cheat Engine Tutorial* [Video]. YouTube. Retrieved from [https://www.youtube.com/watch?v=TCu0qSivXUc](https://www.youtube.com/watch?v=TCu0qSivXUc)**
-ReClass.NET.** *ReClass.NET GitHub Repository*. Retrieved from [https://github.com/ReClassNET/ReClass.NET](https://github.com/ReClassNET/ReClass.NET)
-**Hex-Rays. ***IDA Pro Disassembler and Debugger*. Retrieved from [https://hex-rays.com/ida-pro/](https://hex-rays.com/ida-pro/)
+
+**Guided Hacking**. *Reclass Tutorial — ReClass.NET — How To Reverse Structures* [Video]. YouTube. Retrieved from [youtube](https://www.youtube.com/watch?v=vQb21RM9-5M)
+
+**Guided Hacking**. *How To Find the EntityList in Assault Cube with Cheat Engine Tutorial* [Video]. YouTube. Retrieved from [youtube](https://www.youtube.com/watch?v=TCu0qSivXUc)
+
+**ReClass.NET.** *ReClass.NET GitHub Repository*. Retrieved from [GitHub](https://github.com/ReClassNET/ReClass.NET)
+
+**Hex-Rays.** *IDA Pro Disassembler and Debugger*. Retrieved from [GitHub](https://hex-rays.com/ida-pro/)
+
