@@ -32,7 +32,7 @@ In Unreal Engine 3, there are two global structures: GObject and GNames. They ar
 GObjects is an instance of a class called TUObjectArrayand contains pointers to all UObject in the game. UObject represents all objects, such as actors, components, assets, etc.
 
 The class that represents TUObjectArray is defined as:
-
+```C++
     struct FUObjectItem
     {
      class UObject* Object;
@@ -49,23 +49,25 @@ The class that represents TUObjectArray is defined as:
       return NumElements;
      }
     };
+```
 
 Therefore, to access a UObject from an index, simply do:
-
+```C++
     UObject* GetObjectByIndex(int index)
     {
      return GObjects->Objects[index].Object;
     }
-
+```
 Similarly, if we want to get the number of current elements, which is in the NumElements member, we will do:
-
+```C++
     uint32_t GetObjectCount()
     {
       return GObjects->Num();
     }
+```
 
 I will present the complete definition of the UObject for reference only, but we will use only the members Outer, NameIndex, and Class, which will be explained in more detail later, along with the UClass class. The other members will not be covered here as they are beyond the scope of the article.
-
+```C++
     class UObject
     {
     public:
@@ -84,6 +86,7 @@ I will present the complete definition of the UObject for reference only, but we
      class UClass* Class; //0x0050
      class UObject* ObjectArchtype; //0x0058
     };
+```
 
 ### About the Offsets
 
@@ -97,7 +100,7 @@ GNames is an instance of a class called FNamePool and contains pointers to all F
 This array stores all the unique names used in the game to avoid string duplication and optimize memory usage. For example, if two different UObject have the same unique name, instead of allocating memory for both names, it is enough to point to the same index of the FNamePool that represents their name, avoiding string duplication.
 
 The structure that represents FNameEntry is defined as:
-
+```C++
     class FNameEntry
     {
     public:
@@ -112,14 +115,14 @@ The structure that represents FNameEntry is defined as:
     public:
      class FNameEntry* FNamesArray[0x285F6]; //0x0000
     };
-
+```
 So, to access a name by index, we can do:
-
+```C++
     std::wstring GetNameByIndex(int32_t NameIdx)
     {
      return std::wstring(GNames->FNamesArray[NameIdx]->Name);
     }
-
+```
 These are the two most important structures for us at the moment.
 
 ## 3. How to Obtain the Addresses
@@ -249,7 +252,7 @@ With GObjects and GNames validated, we have what we need to complete the first s
 ### 5.1 Extracting the Name of All Objects
 
 To find out the number of loaded objects, we will access the NumElements member of the FUObjectArray class, defined earlier in subsection 2.1, and iterate through all the objects, obtaining the name associated with the NameIndex of each one:
-
+```C++
     for (int i = 0; i < UObject::GetObjectCount(); ++i)
     {
       UObject* CurrObject = UObject::GetObjectByIndex(i);
@@ -258,7 +261,7 @@ To find out the number of loaded objects, we will access the NumElements member 
        wprintf(L"%i | [%p] %ls\n", i, CurrObject, GNames::GetNameByIndex(CurrObject->NameIndex).c_str());
       }
     }
-
+```
 ![](https://cdn-images-1.medium.com/max/2000/1*kNF-QNgp-JDDcRQpjkW1iw.png)
 
 As we can see, the object at index 0 has the name ‘Config_ORS’, as we checked manually before.
@@ -272,7 +275,7 @@ The name index of this object is at index 0x48 (marked as UObject Name Index in 
 Note that the Outer name always comes first, so the process of constructing the full name of a UObject must happen in reverse. A UObject can have multiple Outer.
 
 This process should continue as long as Outer points to a valid address. We will implement a GetFullName function that will do this:
-
+```C++
     std::wstring UObject::GetName()
     {
      return std::wstring(FNamePool->FNamesArray[NameIndex]->Name);
@@ -291,9 +294,9 @@ This process should continue as long as Outer points to a valid address. We will
     
      return fullName;
     }
-
+```
 Updating our initial code with this:
-
+```C++
     for (int i = 0; i < UObject::GetObjectCount(); ++i)
      {
       UObject* CurrObject = UObject::GetObjectByIndex(i);
@@ -302,7 +305,7 @@ Updating our initial code with this:
        wprintf(L"%i | [%p] %ls\n", i, CurrObject, CurrObject->GetFullName().c_str());
       }
      }
-
+```
 ![](https://cdn-images-1.medium.com/max/2000/1*j-vL_0KqXj-9xNLpRNDK6g.png)
 
 Now we have the full names and addresses of each object in the game!
@@ -319,7 +322,7 @@ This is the object “**Class Engine.ActorFactoryAI**” at index 189. I recomme
 Within this object, let’s open its Class, which is a class called UClass. It has two more classes that it inherits from UObject: UStruct and UProperty.
 
 The UStruct is defined as:
-
+```C++
     class UStruct : public UObject
     {
     public:
@@ -329,7 +332,7 @@ The UStruct is defined as:
      uint32_t PropSize; //0x0018
      char pad_001C[4]; //0x001C
     };
-
+```
 This class is related to the hierarchy of the current UClass.
 
 The SuperField member points to the parent class of the current UClass.
@@ -345,15 +348,15 @@ The second NameIndex at offset 0x48 within SuperClass has the value 17140, which
 ![](https://cdn-images-1.medium.com/max/2000/1*YeSatFac9BYDMm-2wV6kqw.png)
 
 As we have seen, the SuperField represents the parent inheritance of the current object. Therefore, it would be the same as writing:
-
+```C++
     public ActorFactoryAI : public ActorFactory
     {
     public:
       // Members
     };
-
+```
 The UProperty is defined as follows:
-
+```C++
     class UProperty : public UStruct
     {
     public:
@@ -362,7 +365,7 @@ The UProperty is defined as follows:
      class UProperty* Next; //0x00A0
      char pad_00A8[32]; //0x00A8
     };
-
+```
 This class represents a property or member of a class and stores information such as: where in memory this member is located (offset), its name (since it inherits from UObject through UStruct), and the next member of the class.
 
 Since it inherits from UStruct, it starts immediately after it in memory. Later on, this will be better visualized within ReClass, with the names and types already defined.
@@ -374,14 +377,14 @@ The description of the members is as follows:
 * Next - The next member.
 
 Finally, the definition of UClass is as follows:
-
+```C++
     class UClass : public UProperty
     {
     public:
      char pad_0000[0x48]; //0x0098
      class UProperty* Members; //0x110
     };
-
+```
 To get the complete list of members of a class, we need to perform the following procedure:
 
  1. Get the address of the desired class (we will use the GetFullName function we implemented earlier).
@@ -411,7 +414,7 @@ Going down to offset 0x110, we access the address that Members is pointing to an
 Following the Next, we have 36203 as the NameIndex. In GNames, this represents "**PlayerCamera**", and it is at offset 0x480. This is the second member of our class.
 
 Let's create an algorithm to perform this process while Next points to a valid address:
-
+```C++
     void UClass::PrintMembers()
     {
      for (UClass::UProperty* Member = this->Members; Member; Member = Member->Next)
@@ -419,11 +422,11 @@ Let's create an algorithm to perform this process while Next points to a valid a
       wprintf(L"%ls - 0x%08X\n", Member->GetFullName().c_str(), Member->PropOffset);
      }
     }.
-
+```
 We managed to print the name and offset of all the members of a class, but… we haven’t implemented a way to get the address of a specific class by its name yet.
 
 Let’s do it in a simple way: iterate through all UObjects and compare if the substring we are searching for is contained in the name of the object. If found, it returns the address interpreted as UObject.
-
+```C++
     UObject* UObject::GetObjectByName(const wchar_t* ClassName)
     {
      uint32_t currentIndex = 0;
@@ -438,12 +441,12 @@ Let’s do it in a simple way: iterate through all UObjects and compare if the s
      }
      return nullptr;
     }
-
+```
 Now we just need to get the address of the desired class, interpret it as UClass, and call the function we just implemented:
-
+```C++
     UClass* Class = reinterpret_cast<UClass*>(UObject::GetObjectByName(L"Class Engine.PlayerController"));
     Class->PrintMembers();
-
+```
 ![](https://cdn-images-1.medium.com/max/2000/1*tVQpSoULBnGNvTv9bsBfyg.png)
 
 And there you have it — all the members and their offsets of the Engine.PlayerController class! :)
@@ -467,7 +470,7 @@ For the purpose of this article, the third method is more appropriate. If you ha
 After obtaining the memory region that holds a player’s name, I got the following name in UClass: GFxData_PRI_TA. Looking it up in the objects we extracted, we have the following object: Class TAGame.GFxData_PRI_TA.
 
 Extracting its members with the implementation we did earlier, we have the following members:
-
+```C++
     UClass* Class = reinterpret_cast<UClass*>(UObject::GetObjectByName(L"Class TAGame.GFxData_PRI_TA"));
     Class->PrintMembers();
 
@@ -484,11 +487,11 @@ Extracting its members with the implementation we did earlier, we have the follo
     IntProperty GFxData_PRI_TA.Ping - (0x000000E8)
     ...
     // Some more members below
-
+```
 Since this class has many members, I cut it off only until Ping, for better visualization.
 
 Of all these members, let's declare only the ones we want to use, which will be PlayerName and Team, as follows:
-
+```C++
     class UGFxData_PRI_TA : public UObject
     {
     public:
@@ -497,14 +500,14 @@ Of all these members, let's declare only the ones we want to use, which will be 
      char pad_0001[0x30]; // 0xA0
      uint32_t Team; // 0xD0
     };
-
+```
 The pad_xxxx members fill the space of other members that we are not going to use to achieve the correct alignment and access the right memory region we want. Since we are inheriting from UObject, which ends at offset 0x58, this class will start at offset 0x60 (0x58 + 0x08 = 0x60). As we have seen in the members, PlayerName is at offset 0x98, so doing 0x98 - 0x60 = 0x38, we set the size of pad_0000 to 0x38, and its next member will be at offset 0x98. This is useful so we don’t have to declare all the class members until we reach the one we want.
 
 ### 6.2 Reconstructing the Team’s Class
 
 To get the team’s class, I also used the third method I presented, searching for a team name and identifying its region in memory. With this, I arrived at the following class: GFxData_TeamInfo_TA. Searching for this class in our list of objects, we have: "Class TAGame.GFxData_TeamInfo_TA".
 Extracting its members, we get the following list:
-
+```C++
     UClass* Class = reinterpret_cast<UClass*>(UObject::GetObjectByName(L"Class TAGame.GFxData_TeamInfo_TA"));
     Class->PrintMembers();
 
@@ -518,9 +521,9 @@ Extracting its members, we get the following list:
     IntProperty GFxData_TeamInfo_TA.Difficulty - (0x000000C8)
     ...
     // Some more members below
-
+```
 Just like we did with the players’ class, we will declare only the members that interest us, as follows:
-
+```C++
     class GFxData_TeamInfo_TA : public UObject
     {
     public:
@@ -530,7 +533,7 @@ Just like we did with the players’ class, we will declare only the members tha
      char pad_0001[0xC]; // 0xA0
      uint32_t Score; // 0xAC
     };
-
+```
 ## 7.0 Obtaining Class Instances
 
 Now we have the classes and their definitions, but we don’t have their instances. As we have seen, practically everything in Unreal Engine is a UObject, and class instances will be no different.
@@ -551,7 +554,7 @@ To get the instances, we need to reconstruct a native Unreal Engine function kno
  7. If not found, it is not an instance.
 
 The implementation of this function in our SDK would look like this:
-
+```C++
     bool UObject::IsA(UClass* uClass)
     {
      for (UClass* uSuperClass = this->Class; uSuperClass; uSuperClass = uSuperClass = static_cast<UClass*>(uSuperClass->SuperField))
@@ -563,9 +566,9 @@ The implementation of this function in our SDK would look like this:
      }
      return false;
     }
-
+```
 Now, we need to iterate through all the objects and save in a vector all the UObjects that IsA identifies as an instance:
-
+```C++
     std::vector<UObject*> UObject::GetInstancesByClass(UClass* uClass)
     {
      std::vector<UObject*> instances;
@@ -581,7 +584,7 @@ Now, we need to iterate through all the objects and save in a vector all the UOb
      }
      return instances;
     }
-
+```
 Passing as a parameter the class we obtained earlier for the players, for example, we will get the following return (after entering an offline 4x4 match):
 
 ![](https://cdn-images-1.medium.com/max/2000/1*SjrkwN3EZKnSbAEaxC_Acw.png)
