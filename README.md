@@ -21,7 +21,7 @@ Any modifications or techniques discussed here are strictly intended for offline
 
 In the context of our project, which aims to extract team and player data from Rocket League in real time, an SDK (Software Development Kit) is a collection of headers containing class definitions, structures, and functions used by the game, providing access to them.
 
-To build these headers, we need to **reverse engineer** **Rocket League **and **Unreal Engine**, and two structures will be essential for this: GObject and GNames.
+To build these headers, we need to **reverse engineer Rocket League** and **Unreal Engine**, and two structures will be essential for this: GObject and GNames.
 
 ## 2. Unreal Engine Structure
 
@@ -92,7 +92,7 @@ I will present the complete definition of the UObject for reference only, but we
 
 In the UObject definition I presented, the offsets for each member (this will be discussed further in section 6.1) are in the form of comments. However, it is important to note that these offsets refer to Rocket League at the time I am writing this article. They may be different for other games or even after an update of Rocket League itself.
 
-There is a method that allows you to use macros to automatically obtain offsets for dynamic classes; you can learn more about it [*here](https://learn.microsoft.com/en-us/cpp/cpp/property-cpp?view=msvc-170)*.
+There is a method that allows you to use macros to automatically obtain offsets for dynamic classes; you can learn more about it [*here*](https://learn.microsoft.com/en-us/cpp/cpp/property-cpp?view=msvc-170).
 
 ### 2.2 GNames — Global Names Array
 
@@ -129,7 +129,7 @@ These are the two most important structures for us at the moment.
 
 We can use several methods to obtain the addresses of GObjects and GNames, from public pattern scans to reverse engineering the binary using a disassembler.
 
-It is interesting for the reader to try to find them on their own, but I will show how I found them using a disassembler called [IDA64](https://hex-rays.com/ida-pro/) for static analysis and a structure dissector called [ReClass.net](https://github.com/ReClassNET/ReClass.NET) to validate if it is correct or not.
+It is interesting for the reader to try to find them on their own, but I will show how I found them using a disassembler called [*IDA64*](https://hex-rays.com/ida-pro/) for static analysis and a structure dissector called [*ReClass.net*](https://github.com/ReClassNET/ReClass.NET) to validate if it is correct or not.
 
 ### 3.1 Using IDA64
 
@@ -209,7 +209,7 @@ Another tool that will be widely used here is a structure dissector known as ReC
 
 This tool will be very useful for us to better understand how things are structured in the game; we can access values in real-time and rename members and structures. It also has a functionality that will help us generate the ready-made class code in C++.
 
-I will not explain how to use ReClass itself; I will only show how to validate the offsets we need. If you are not familiar with the tool, I recommend watching the video “[*Reclass Tutorial — ReClass.NET — How To Reverse Structures](https://www.youtube.com/watch?v=vQb21RM9-5M)*” by [*Guided Hacking](https://www.youtube.com/@GuidedHacking) *before proceeding.
+I will not explain how to use ReClass itself; I will only show how to validate the offsets we need. If you are not familiar with the tool, I recommend watching the video “[*Reclass Tutorial — ReClass.NET — How To Reverse Structures*](https://www.youtube.com/watch?v=vQb21RM9-5M)” by [*Guided Hacking*](https://www.youtube.com/@GuidedHacking) before proceeding.
 
 ### 4.1 Validating GNames
 
@@ -463,7 +463,7 @@ Another way is to hook a function called ProcessEvent. This function is responsi
 
 A third method, which may be a bit simpler, is to use software like **[Cheat Engine](https://www.cheatengine.org/)**, create an offline match with bots, and search for the memory address that stores a player's name. After that, we can place this address in ReClass and identify its UClass, and by NameIndex, we will have the class to which that value belongs.
 
-For the purpose of this article, the third method is more appropriate. If you have no idea how to do it, I recommend the video “[*How To Find the EntityList in Assault Cube with Cheat Engine Tutorial](https://www.youtube.com/watch?v=TCu0qSivXUc)*” by [*Guided Hacking](https://www.youtube.com/@GuidedHacking)*. Although it is for another game, it provides a good foundation with the tool that can be applied here.
+For the purpose of this article, the third method is more appropriate. If you have no idea how to do it, I recommend the video “[*How To Find the EntityList in Assault Cube with Cheat Engine Tutorial*](https://www.youtube.com/watch?v=TCu0qSivXUc)” by [*Guided Hacking*](https://www.youtube.com/@GuidedHacking). Although it is for another game, it provides a good foundation with the tool that can be applied here.
 
 ### 6.1 Reconstructing the Player’s Class
 
