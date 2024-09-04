@@ -1,6 +1,8 @@
 
 ## **How to Create an SDK to Extract Rocket League Data: Reverse Engineering in Unreal Engine Games**
 
+![](https://cdn-images-1.medium.com/max/2000/1*asUGKU2oOOS4mGxwQylH1g.gif)
+
 In this article, we will use reverse engineering concepts and techniques applied to Rocket League and Unreal Engine 3 to create an SDK (Software Development Kit) to obtain the following information: the names of the teams, all the members of each team, and the score. Here, you will learn:
 
 * What is an SDK?
@@ -10,8 +12,6 @@ In this article, we will use reverse engineering concepts and techniques applied
 * How to obtain the GObject and GName addresses using IDA
 
 * How to use these addresses to get the information we want.
-
-![](https://cdn-images-1.medium.com/max/2000/1*BQnnK_WQhp5KPN4XVnsYzg.jpeg)
 
 ## Warning
 
@@ -23,7 +23,7 @@ Any modifications or techniques discussed here are strictly intended for offline
 
 In the context of our project, which aims to extract team and player data from Rocket League in real time, an SDK (Software Development Kit) is a collection of headers containing class definitions, structures, and functions used by the game, providing access to them.
 
-To build these headers, we need to **reverse engineer** **Rocket League** and **Unreal Engine**, and two structures will be essential for this: GObject and GNames.
+To build these headers, we need to **reverse engineer** **Rocket League **and **Unreal Engine**, and two structures will be essential for this: GObject and GNames.
 
 ## 2. Unreal Engine Structure
 
@@ -87,6 +87,12 @@ I will present the complete definition of the UObject for reference only, but we
      class UObject* ObjectArchtype; //0x0058
     };
 
+### About the Offsets
+
+In the UObject definition I presented, the offsets for each member (this will be discussed further in section 6.1) are in the form of comments. However, it is important to note that these offsets refer to Rocket League at the time I am writing this article. They may be different for other games or even after an update of Rocket League itself.
+
+There is a method that allows you to use macros to automatically obtain offsets for dynamic classes; you can learn more about it [*here](https://learn.microsoft.com/en-us/cpp/cpp/property-cpp?view=msvc-170)*.
+
 ### 2.2 GNames — Global Names Array
 
 GNames is an instance of a class called FNamePool and contains pointers to all FNameEntry, which represents a string. I will define all this shortly.
@@ -103,19 +109,26 @@ The structure that represents FNameEntry is defined as:
      wchar_t Name[0x400]; //0x0018
     }; //Size: 0x0338
     
-    class GNames
+    class FNamePool
     {
     public:
      class FNameEntry* FNamesArray[0x285F6]; //0x0000
     };
 
-## 3. How to Obtain the Addresses
+So, to access a name by index, we can do:
 
-You can skip this chapter if you already have the offsets or have another way of getting them. There are also several videos on the internet teaching how to obtain them using pattern scanning that are simpler.
+    std::wstring GetNameByIndex(int32_t NameIdx)
+    {
+     return std::wstring(GNames->FNamesArray[NameIdx]->Name);
+    }
+
+These are the two most important structures for us at the moment.
+
+## 3. How to Obtain the Addresses
 
 We can use several methods to obtain the addresses of GObjects and GNames, from public pattern scans to reverse engineering the binary using a disassembler.
 
-It is interesting for the reader to try to find them on their own, but I will briefly show how I found them using a disassembler called IDA64 for static analysis and a structure dissector called ReClass.net to validate if it is correct or not.
+It is interesting for the reader to try to find them on their own, but I will show how I found them using a disassembler called [IDA64](https://hex-rays.com/ida-pro/) for static analysis and a structure dissector called [ReClass.net](https://github.com/ReClassNET/ReClass.NET) to validate if it is correct or not.
 
 ### 3.1 Using IDA64
 
@@ -123,29 +136,69 @@ With IDA, we can perform a static analysis of a binary file. Several methods can
 
 In our case, we want to find GNames and GObjects. There is a native function known as IsValid that checks whether an object is valid or not by performing a series of checks.
 
-Here it is in IDA:
+We are going to find this function by searching for strings.
 
-![](https://cdn-images-1.medium.com/max/2000/1*2SVOmxhWH82BspPixj7vDQ.png)
+The first step is to generate all strings in IDA (shift+F12). We will have a screen similar to this:
 
-On line 37, it performs the first checks: if the index is negative or greater than or equal to an unknown qword, the object is invalid. Here, it is easy to notice that qword_24BF4E0 refers to the number of objects in the game so far; with just this, it would already be possible to obtain GObjects.
+![](https://cdn-images-1.medium.com/max/2000/1*cAiVYGKGudAbTh00mYPnpQ.png)
+
+Now, we need to search for some text that leads us to the function we want to find. In our case, since it’s IsValid, we can search for "Invalid object index" (CTRL+F), and we get only one result:
+
+![](https://cdn-images-1.medium.com/max/2000/1*7yQUnVsbVNcmnhHUCayYRg.png)
+
+Double-click it, select it, and press “x” to search for its references (where this string is used), and we have only one result:
+
+![](https://cdn-images-1.medium.com/max/2000/1*pz1geLR9TzKto_3JwFAk0w.png)
+
+Double-clicking takes us directly to the memory region where this function is located:
+
+![](https://cdn-images-1.medium.com/max/2030/1*oDRqpAxA7aqKEkTowDh5vw.png)
+
+Pressing “Tab” allows us to view this function in pseudo-code, which will be much easier for analysis:
+
+![](https://cdn-images-1.medium.com/max/2000/1*OL65IHQBeOj75rJIpdqd9g.png)
+
+And there is the function that uses the string we just searched for. Since it checks whether an object is valid or not, the parameter it receives is a UObject. We can select a name or variable inside the function, press “n”, and change its name; this will help us understand better as we discover what each part means:
+
+![](https://cdn-images-1.medium.com/max/2000/1*LXjBelH3r59zDsLHygzcsQ.png)
+
+Now, let’s start analyzing our function to find out where the offsets for GObjects and GNames that we need are:
+
+![](https://cdn-images-1.medium.com/max/2000/1*8-Rt_an__-U45oXhIJbAzg.png)
+
+On line 37, it performs the first checks: if the variable v2 is negative or greater than or equal to an unknown qword, the object is invalid. It is easy to notice that qword_24BF4E0 refers to the number of objects in the game at that moment; with this alone, it would be possible to obtain GObjects.
+
+We also know that v2 is the index of the UObject, and it is at offset 0x38 (as stated in the UObject definition presented in section 2.1); let's rename it:
+
+![](https://cdn-images-1.medium.com/max/2000/1*uPXeWOszMlOiu3WnvQDNQg.png)
 
 Further down in the same function:
 
-![](https://cdn-images-1.medium.com/max/2000/1*XJ1wy9exFosyP5kYrePwgQ.png)
+![](https://cdn-images-1.medium.com/max/2000/1*jSH9P68CYbTE3yFpNMMzTg.png)
 
-On line 110, it retrieves an object from the array qword_24BF4D8 and checks if there is any other object in the same region. With this analysis, we can already state that this qword is our GObjects.
+On line 110, it obtains an object from the array qword_24BF4D8 and checks if there is any other object in the same region. With this analysis, we can already assert that this qword is our GObjects.
 
-Now we need GNames. Going back further up in the same function:
+Now, we need GNames. In this function, it is easier to find. We just need to find somewhere that prints the object's name, such as on line 103:
 
-![](https://cdn-images-1.medium.com/max/2000/1*JQF_2aeBfSi88SPm2RE8Sw.png)
+![](https://cdn-images-1.medium.com/max/2000/1*eK0YuEdkgB5VqF55Nv10gw.png)
 
-On line 51, the function sub_2E9FB0 receives a string variable as a parameter and an array qword_24BF490. This string, further down, is used on line 90 to print the object's name:
+The object’s name is stored in v1, which on line 102, has the value of var_18 assigned to it. Going further up in the function, on line 51, a reference to var_18 is passed to a function along with an array:
 
-![](https://cdn-images-1.medium.com/max/2000/1*Z0-nHmvdyLsPmwBdeo6yDQ.png)
+![](https://cdn-images-1.medium.com/max/2000/1*Sop5XQuPiKQdPpvc7-mN9A.png)
 
-Based on this, we can state that the array qword_24BF490 is GNames.
+Double-clicking on the function sub_2E9FB0 to analyze it, we see that it is a simple memcpy from the second parameter to the first:
 
-In the next chapter, I will demonstrate how to validate these two offsets using the structure dissector ReClass.net.
+![](https://cdn-images-1.medium.com/max/2000/1*iGOrXrxM6asUkhdiwyv7eQ.png)
+
+In other words, this function is getting a string in the array qword_24BF490 and saving it to the first parameter, in our case, in var_18, which on line 103 is assigned to v1 and used as the object's name.
+
+On line 51, the function sub_2E9FB0 receives a String variable and an array qword_24BF490 as parameters. This string, further down, is used on line 90 to print the object's name:
+
+// TODO: IMAGE HERE
+
+Based on this, we can assert that the array qword_24BF490 is GNames.
+
+In the next chapter, I will demonstrate how to validate these two offsets using the struct dissector [ReClass.net](https://github.com/ReClassNET/ReClass.NET).
 
 ## 4. Understanding the Structure with ReClass.net
 
@@ -155,11 +208,11 @@ Another tool that will be widely used here is a structure dissector known as ReC
 
 This tool will be very useful for us to better understand how things are structured in the game; we can access values in real-time and rename members and structures. It also has a functionality that will help us generate the ready-made class code in C++.
 
-I will not explain how to use ReClass itself; I will only show how to validate the offsets we need. There are many good resources online if you are not familiar with the tool.
+I will not explain how to use ReClass itself; I will only show how to validate the offsets we need. If you are not familiar with the tool, I recommend watching the video “[*Reclass Tutorial — ReClass.NET — How To Reverse Structures](https://www.youtube.com/watch?v=vQb21RM9-5M)*” by [*Guided Hacking](https://www.youtube.com/@GuidedHacking) *before proceeding.
 
 ### 4.1 Validating GNames
 
-First, let’s check if the offset for GNames is correct. To do this, simply enter <{Process Name}>+{0xOffset}.
+First, let’s check if the offset for GNames is correct. To do this, simply enter <{Module Name}>+{0xOffset}.
 
 By changing the type of the first offset (0x0000) to a pointer, to access where the HEAP is pointing, we see the following:
 
@@ -407,9 +460,9 @@ One way is simply to look at all the objects we extracted and search for a keywo
 
 Another way is to hook a function called ProcessEvent. This function is responsible for processing all game events; basically, every call involving UObjects goes through it. Therefore, just hook it to intercept the UObjects that are associated with the calls when you perform an action involving something you want. For example, if you want to get the team names, you can intercept the ProcessEvent when entering a match, and this will filter only the classes responsible for that action. This method is a bit complex, and I will not go into it in depth.
 
-A third method, which may be a bit simpler, is to use software like **Cheat Engine**, create an offline match with bots, and search for the memory address that stores a player's name. After that, we can place this address in ReClass and identify its UClass, and by NameIndex, we will have the class to which that value belongs.
+A third method, which may be a bit simpler, is to use software like **[Cheat Engine](https://www.cheatengine.org/)**, create an offline match with bots, and search for the memory address that stores a player's name. After that, we can place this address in ReClass and identify its UClass, and by NameIndex, we will have the class to which that value belongs.
 
-I will not demonstrate how to obtain this because the article would become too long and stray from its purpose, but I recommend the second or third method, depending on your goals. You can find good material on this on the internet. For the purpose of this article, I recommend the third method.
+For the purpose of this article, the third method is more appropriate. If you have no idea how to do it, I recommend the video “[*How To Find the EntityList in Assault Cube with Cheat Engine Tutorial](https://www.youtube.com/watch?v=TCu0qSivXUc)*” by [*Guided Hacking](https://www.youtube.com/@GuidedHacking)*. Although it is for another game, it provides a good foundation with the tool that can be applied here.
 
 ### 6.1 Reconstructing the Player’s Class
 
@@ -547,6 +600,14 @@ We can see at offset 0x0098 the player’s name, as shown in the definition we m
 
 Now we just need to get the team instances, relate each player to a team, and separate them for a more organized visualization. We achieved the following result:
 
-![](https://cdn-images-1.medium.com/max/2000/1*BQnnK_WQhp5KPN4XVnsYzg.jpeg)
+![](https://cdn-images-1.medium.com/max/2000/1*asUGKU2oOOS4mGxwQylH1g.gif)
 
 And that’s it! We developed an SDK from scratch with everything needed to achieve our goal.
+
+## References
+
+**Cheat Engine**. *Cheat Engine Official Website*. Retrieved from [https://www.cheatengine.org/](https://www.cheatengine.org/)
+**Guided Hacking**. *Reclass Tutorial — ReClass.NET — How To Reverse Structures *[Video]. YouTube. Retrieved from [https://www.youtube.com/watch?v=vQb21RM9-5M](https://www.youtube.com/watch?v=vQb21RM9-5M)
+**Guided Hacking**. *How To Find the EntityList in Assault Cube with Cheat Engine Tutorial* [Video]. YouTube. Retrieved from [https://www.youtube.com/watch?v=TCu0qSivXUc](https://www.youtube.com/watch?v=TCu0qSivXUc)**
+ReClass.NET.** *ReClass.NET GitHub Repository*. Retrieved from [https://github.com/ReClassNET/ReClass.NET](https://github.com/ReClassNET/ReClass.NET)
+**Hex-Rays. ***IDA Pro Disassembler and Debugger*. Retrieved from [https://hex-rays.com/ida-pro/](https://hex-rays.com/ida-pro/)
