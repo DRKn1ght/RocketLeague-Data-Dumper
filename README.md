@@ -193,9 +193,9 @@ Double-clicking on the function sub_2E9FB0 to analyze it, we see that it is a si
 
 In other words, this function is getting a string in the array qword_24BF490 and saving it to the first parameter, in our case, in var_18, which on line 103 is assigned to v1 and used as the object's name.
 
-On line 51, the function sub_2E9FB0 receives a String variable and an array qword_24BF490 as parameters. This string, further down, is used on line 90 to print the object's name:
+On line 51, the function sub_2E9FB0 receives a String variable and an array qword_24BF490 as parameters. This string, further down, is used on line 103 to print the object's name:
 
-// TODO: IMAGE HERE
+![](https://cdn-images-1.medium.com/max/800/1*QgANbHwUteJVyb_xPmLYug.png)
 
 Based on this, we can assert that the array qword_24BF490 is GNames.
 
