@@ -2,42 +2,39 @@
 #include "UClass.hpp"
 
 static uintptr_t BaseAddress = reinterpret_cast<uintptr_t>(GetModuleHandle(NULL));
+static TUObjectArray* GObjects;
+static FNamePool* GNames;
 
 struct Offsets
 {
 	static const uintptr_t GObjects = 0x24BF4D8;
-	static const uintptr_t ObjectCount = 0x24BF4E0;
 	static const uintptr_t GNames = 0x24BF490;
 };
 
+void UObject::InitGObjects()
+{
+	GObjects = reinterpret_cast<TUObjectArray*>((uintptr_t*)(BaseAddress + Offsets::GObjects));
+	GNames = *(FNamePool**)(BaseAddress + Offsets::GNames);
+}
+
 UObject* UObject::GetObjectByIndex(int index)
 {
-	static uintptr_t GObjectsAddr = *(uintptr_t*)(BaseAddress + Offsets::GObjects);
-	return *(UObject**)(GObjectsAddr + (0x8 * index));
+	return GObjects->Objects[index].Object;
 }
 
 uint32_t UObject::GetObjectCount()
 {
-	uintptr_t objectCountAddress = BaseAddress + Offsets::ObjectCount;
-	return *reinterpret_cast<int32_t*>(objectCountAddress);
-}
-
-GNames* GNames::GetFNamePool()
-{
-	// offset: 0x24BF490
-	return *(GNames**)(BaseAddress + Offsets::GNames);
+	return GObjects->Num();
 }
 
 std::wstring UObject::GetName()
 {
-	GNames* FNamePool = GNames::GetFNamePool();
-	return std::wstring(FNamePool->FNamesArray[NameIndex]->Name);
+	return std::wstring(GNames->FNamesArray[NameIndex]->Name);
 }
 
-std::wstring GNames::GetNameByIndex(int32_t NameIdx)
+std::wstring FNamePool::GetNameByIndex(int32_t NameIdx)
 {
-	GNames* FNamePool = GNames::GetFNamePool();
-	return std::wstring(FNamePool->FNamesArray[NameIdx]->Name);
+	return std::wstring(GNames->FNamesArray[NameIdx]->Name);
 }
 
 std::wstring UObject::GetFullName()
@@ -82,7 +79,7 @@ std::vector<UObject*> UObject::GetInstancesByClass(UClass* uClass)
 	return instances;
 }
 
-UObject* UObject::GetObjectByName(const std::wstring& ClassName)
+UObject* UObject::GetObjectByName(const wchar_t* ClassName)
 {
 	uint32_t currentIndex = 0;
 	while (currentIndex < GetObjectCount())
@@ -95,6 +92,14 @@ UObject* UObject::GetObjectByName(const std::wstring& ClassName)
 		currentIndex += 1;
 	}
 	return nullptr;
+}
+
+void UClass::PrintMembers()
+{
+	for (UClass::UProperty* Member = this->Members; Member; Member = Member->Next)
+	{
+		wprintf(L"%ls - 0x%08X\n", Member->GetFullName().c_str(), Member->PropOffset);
+	}
 }
 
 bool UObject::HasOuter()

@@ -7,7 +7,7 @@ class UObject;
 class UStruct : public UObject
 {
 public:
-	char pad_0000[0x20]; //0x0000
+	char pad_0000[0x20]; //0x0060
 	class UStruct* SuperField; //0x0008
 	class UStruct* Children; //0x0010
 	uint32_t PropSize; //0x0018

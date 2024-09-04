@@ -1,3 +1,11 @@
 ﻿  dllmain.cpp
+D:\vstudio2022\RLDUMPERGOD\RocketLeague-Data-Dumper-New\RLDUMPERGOD\dllmain.cpp(10,1): warning C4005: '_CRT_SECURE_NO_WARNINGS': redefinição de macro
+D:\vstudio2022\RLDUMPERGOD\RocketLeague-Data-Dumper-New\RLDUMPERGOD\dllmain.cpp(10,1): message : '_CRT_SECURE_NO_WARNINGS' declarado anteriormente na linha de comando
+  GFxData_TeamInfo_TA.cpp
+  UGFxData_PRI.cpp
+  UGFxData_PRI.hpp
+  UObject.cpp
+D:\vstudio2022\RLDUMPERGOD\RocketLeague-Data-Dumper-New\RLDUMPERGOD\UObject.cpp(70,20): warning C4018: '<': incompatibilidade de signed/unsigned
+  Gerando Código...
 x64\Debug\UGFxData_PRI.obj : warning LNK4042: objeto especificado mais de uma vez; extras ignorados
   RLDUMPERGOD.vcxproj -> D:\vstudio2022\RLDUMPERGOD\RocketLeague-Data-Dumper-New\x64\Debug\RLDUMPERGOD.dll

@@ -21,12 +21,11 @@ public:
 	wchar_t Name[0x400]; //0x0018
 }; //Size: 0x0338
 
-class GNames
+class FNamePool
 {
 public:
 	class FNameEntry* FNamesArray[165366]; //0x0000
 
-	static GNames* GetFNamePool();
 	static std::wstring GetNameByIndex(int32_t NameIdx);
 }; //Size: 0x30D400
 
@@ -63,6 +62,24 @@ public:
 
 	static UObject* GetObjectByIndex(int index);
 
-	static UObject* GetObjectByName(const std::wstring& ClassName);
+	static UObject* GetObjectByName(const wchar_t* ClassName);
+
+	static void InitGObjects();
 
 }; //Size: 0x0060
+
+struct FUObjectItem
+{
+	class UObject* Object;
+};
+
+class TUObjectArray {
+public:
+	FUObjectItem* Objects;     // Ponteiro para o array de pointeiros para os UObject
+	int32_t NumElements;		// Número de elementos atuais no array
+public:
+	inline int32_t Num() const
+	{
+		return NumElements;
+	}
+};

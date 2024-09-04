@@ -1,16 +1,11 @@
 #pragma once
+#define _CRT_SECURE_NO_WARNINGS
 #include <windows.h>
-#include <iostream>
-#include <fstream>
-#include <string>
 #include <vector>
-#include <iomanip>
 #include "UObject.hpp"
 #include "UClass.hpp"
 #include "GFxData_TeamInfo_TA.hpp"
 #include "UGFxData_PRI.hpp"
-#include <unordered_map>
-#include <algorithm>
 #include <chrono>
 #include <thread>
 
@@ -26,7 +21,6 @@ std::wstring centerText(const std::wstring& text, size_t width) {
 
 	return centeredText;
 }
-
 
 void PrintTeamTable(std::vector<GFxData_TeamInfo_TA*>& Teams, std::vector<UGFxData_PRI_TA*>& Players)
 {
@@ -75,8 +69,7 @@ void PrintTeamTable(std::vector<GFxData_TeamInfo_TA*>& Teams, std::vector<UGFxDa
 
 void Main()
 {
-	//FILE* file;
-	//_wfopen_s(&file, L"addresses.txt", L"w+");
+	UObject::InitGObjects();
 	UClass* GFxData_TeamInfo = nullptr;
 	UClass* UGFxData_PRI = nullptr;
 
