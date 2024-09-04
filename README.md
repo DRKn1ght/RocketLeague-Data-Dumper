@@ -11,7 +11,7 @@ In this article, we will use reverse engineering concepts and techniques applied
 
 * How to use these addresses to get the information we want.
 
-## Warning
+## Notice
 
 This article is intended solely for educational and informational purposes. The techniques and methods described here are provided to help readers understand the underlying mechanics of game software and are for learning purposes only.
 
