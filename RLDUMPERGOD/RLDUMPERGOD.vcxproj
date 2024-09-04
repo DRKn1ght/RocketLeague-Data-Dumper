@@ -24,6 +24,7 @@
     <ProjectGuid>{7ced3a0d-8a51-4144-a235-b7875ce641f8}</ProjectGuid>
     <RootNamespace>RLDUMPERGOD</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>RLDUMPER</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
