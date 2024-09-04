@@ -557,7 +557,7 @@ The implementation of this function in our SDK would look like this:
 ```C++
     bool UObject::IsA(UClass* uClass)
     {
-     for (UClass* uSuperClass = this->Class; uSuperClass; uSuperClass = uSuperClass = static_cast<UClass*>(uSuperClass->SuperField))
+     for (UClass* uSuperClass = this->Class; uSuperClass; uSuperClass = static_cast<UClass*>(uSuperClass->SuperField))
      {
       if (uSuperClass && uSuperClass == uClass)
       {
