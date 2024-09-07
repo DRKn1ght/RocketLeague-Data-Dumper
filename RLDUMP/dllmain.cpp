@@ -1,3 +1,9 @@
+/*
+Written by: DRKnight
+https://github.com/DRKn1ght
+https://github.com/DRKn1ght/RocketLeague-Data-Dumper
+*/
+
 #pragma once
 #define _CRT_SECURE_NO_WARNINGS
 #include <windows.h>

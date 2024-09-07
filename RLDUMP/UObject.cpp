@@ -1,3 +1,10 @@
+/*
+Written by: DRKnight
+https://github.com/DRKn1ght
+https://github.com/DRKn1ght/RocketLeague-Data-Dumper
+*/
+
+
 #include "UObject.hpp"
 #include "UClass.hpp"
 

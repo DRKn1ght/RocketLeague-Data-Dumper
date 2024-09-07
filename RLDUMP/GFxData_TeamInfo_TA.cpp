@@ -1,3 +1,10 @@
+/*
+Written by: DRKnight
+https://github.com/DRKn1ght
+https://github.com/DRKn1ght/RocketLeague-Data-Dumper
+*/
+
+
 #include "GFxData_TeamInfo_TA.hpp"
 
 std::wstring GFxData_TeamInfo_TA::GetTeamName()
