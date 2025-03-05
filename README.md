@@ -1,4 +1,4 @@
-## **How to Create an SDK to Extract Rocket League Data: Reverse Engineering in Unreal Engine Games**
+## **How to Create an SDK to Extract Rocket League Data in Real Time: Reverse Engineering in Unreal Engine Games**
 ![1_asUGKU2oOOS4mGxwQylH1g](https://github.com/user-attachments/assets/91ac0e0f-bfb4-4eb8-a7d4-59519e16edab)
 
 In this article, we will use reverse engineering concepts and techniques applied to Rocket League and Unreal Engine 3 to create an SDK (Software Development Kit) to obtain the following information: the names of the teams, all the members of each team, and the score. Here, you will learn:
